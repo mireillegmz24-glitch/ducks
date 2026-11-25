@@ -1,0 +1,51 @@
+---
+title: "Seasons"
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(ggridges)
+```
+
+```{r}
+# Read the cleaned tracking data saved by map.qmd
+mallards <- read_rds("data/mallards.rds")
+```
+
+```{r}
+# Count GPS fixes per month
+mallards |>
+  count(month)
+```
+
+```{r}
+# Summary statistics for speed
+mallards |>
+  summarize(
+    min = min(speed, na.rm = TRUE),
+    q25 = quantile(speed, 0.25, na.rm = TRUE),
+    median = median(speed, na.rm = TRUE),
+    mean = mean(speed, na.rm = TRUE),
+    q75 = quantile(speed, 0.75, na.rm = TRUE),
+    max = max(speed, na.rm = TRUE),
+    n_na = sum(is.na(speed))
+  )
+```
+
+```{r}
+#| message: false
+# Filter out missing speeds and outliers above 30 m/s
+mallards |>
+  filter(!is.na(speed), speed <= 30) |>
+  ggplot(aes(x = speed, y = fct_rev(month), fill = season)) +
+  geom_density_ridges(alpha = 0.7) +
+  labs(
+    title = "Mallard Duck Speed Distributions by Month",
+    subtitle = "GPS fixes with speed <= 30 m/s",
+    x = "Speed (m/s)",
+    y = "Month",
+    fill = "Season"
+  ) +
+  theme_minimal()
+```
